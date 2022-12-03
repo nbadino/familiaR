@@ -1,0 +1,57 @@
+---
+title: "Old Faithful Eruptions"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(datasets)
+data(faithful)
+Solow <- function(s,k,a){
+  y <- s*k^a
+  return <- y
+}
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+Waiting time between eruptions and the duration of the eruption for the
+Old Faithful geyser in Yellowstone National Park, Wyoming, USA.
+
+```{r}
+selectInput("model", label = "Economic Model:",
+            choices = c("Solow", "Ramset", "OLG"), selected = "Solow")
+
+sliderInput("k", label = "Parameter:",
+            min = 1, max = 20, value = 10, step = 1)
+sliderInput("s", label = "Saving rate:",
+            min = 0, max = 1, value =0.5, step = 0.01)
+sliderInput("a", label = "Elasticty:",
+            min = 0, max = 1, value =0.5, step = 0.01)
+
+```
+
+Column
+-----------------------------------------------------------------------
+
+### Geyser Eruption Duration
+
+```{r}
+#renderPrint(input$model)
+#uiOutput("dynamic")
+renderPlot({
+  k <- 1:input$k
+  if (input$model == "Solow")  {
+    plot(k,Solow(input$s,k, input$a), type="l")
+    #lines(k,Solow(input$s,k, -input$a), type="l")
+    }
+})
+
+
+```
