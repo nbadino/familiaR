@@ -1,10 +1,11 @@
 ---
-title: "Old Faithful Eruptions"
+title: "FamiliaR with Dynamics"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
     social: menu
     source_code: embed
+    theme: spacelab
 runtime: shiny
 ---
 
@@ -22,19 +23,17 @@ Solow2 <- function(d,n,k){
 }
 ```
 
-Page Models {data-navmenu='Models'}
+Dynamics {data-navmenu='Models' data-icon='ion-levels'}
 =======================================================================
 
 Column {.sidebar}
 -----------------------------------------------------------------------
 
-Waiting time between eruptions and the duration of the eruption for the
-Old Faithful geyser in Yellowstone National Park, Wyoming, USA.
+Select your model and the value of each parameters.
 
 ```{r}
 selectInput("model", label = "Economic Model:",
             choices = c("Solow", "Ramset", "OLG"), selected = "Solow")
-
 sliderInput("k", label = "Chart length (k):",
             min = 1, max = 20, value = 10, step = 1)
 sliderInput("s", label = "Saving rate:",
@@ -45,7 +44,6 @@ sliderInput("d", label = "Depreciation:",
             min = 0, max = 1, value =0.5, step = 0.01)
 sliderInput("n", label = "Population growth rate:",
             min = 0, max = 1, value =0.5, step = 0.01)
-
 ```
 
 Column
@@ -75,5 +73,20 @@ renderPlot({
 
 ### Phase Portrait
 
-Page About {data-navmenu='About this Project'}
+
+
+
+PhaseR and Our Tool{data-navmenu='About this Project' data-icon="ion-cube"} 
 ========================================================================
+
+Link and short presentation of the package and the paper associated. 
+
+Future Perspectives{data-navmenu='About this Project' data-icon='ion-ios-paperplane-outline'} 
+========================================================================
+
+Possibility of a package, extending/generalizing the tool to all macro 1-ODE and 2-ODE...
+
+Resources{data-navmenu='Models' data-icon='ion-merge'}
+========================================================================
+
+In that page we can propose short econ/math developments on the models and/or links to the papers and teaching courses
