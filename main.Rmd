@@ -2,7 +2,7 @@
 title: "Old Faithful Eruptions"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: rows
+    orientation: columns
     social: menu
     source_code: embed
 runtime: shiny
@@ -48,7 +48,12 @@ sliderInput("n", label = "Population growth rate:",
 Column
 -----------------------------------------------------------------------
 
-### Geyser Eruption Duration
+### Numerical Simulations
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Dynamics
 
 ```{r}
 #renderPrint(input$model)
@@ -63,6 +68,6 @@ renderPlot({
     #lines(k,Solow(input$s,k, -input$a), type="l")
     }
 })
-
-
 ```
+
+### Phase Portrait
