@@ -11,10 +11,14 @@ runtime: shiny
 ```{r global, include=FALSE}
 # load data in 'global' chunk so it can be shared by all users of the dashboard
 library(datasets)
+library(ggplot2)
 data(faithful)
-Solow <- function(s,k,a){
+Solow1 <- function(s,k,a){
   y <- s*k^a
   return <- y
+}
+Solow2 <- function(d,n,k){
+  y <- d*k + n*k
 }
 ```
 
@@ -28,11 +32,15 @@ Old Faithful geyser in Yellowstone National Park, Wyoming, USA.
 selectInput("model", label = "Economic Model:",
             choices = c("Solow", "Ramset", "OLG"), selected = "Solow")
 
-sliderInput("k", label = "Parameter:",
+sliderInput("k", label = "Chart length (k):",
             min = 1, max = 20, value = 10, step = 1)
 sliderInput("s", label = "Saving rate:",
             min = 0, max = 1, value =0.5, step = 0.01)
 sliderInput("a", label = "Elasticty:",
+            min = 0, max = 1, value =0.5, step = 0.01)
+sliderInput("d", label = "Depreciation:",
+            min = 0, max = 1, value =0.5, step = 0.01)
+sliderInput("n", label = "Population growth rate:",
             min = 0, max = 1, value =0.5, step = 0.01)
 
 ```
@@ -48,7 +56,10 @@ Column
 renderPlot({
   k <- 1:input$k
   if (input$model == "Solow")  {
-    plot(k,Solow(input$s,k, input$a), type="l")
+    ggplot()+
+      geom_line(aes(x = k, y = Solow1(input$s,k, input$a), color = "blue"))+
+      geom_line(aes(x=k,y=Solow2(input$d, input$n, k), color = "red"))
+    #plot(k,Solow(input$s,k, input$a), type="l")
     #lines(k,Solow(input$s,k, -input$a), type="l")
     }
 })
