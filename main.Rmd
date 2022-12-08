@@ -19,17 +19,17 @@ Solow1 <- function(s,k,a){
   y <- s*k^a
   return <- y
 }
-Solow2 <- function(d,n,k){
-  y <- d*k + n*k
+Solow2 <- function(d,k){
+  y <- d*k+k^-1
 }
 
 solow_de <- function(t,y,parameters){
   s <- parameters[1]
   a <- parameters[2]
-  d <- parameters[3]
+  del <- parameters[3]
   #k <- parameters[4]
   rhs <- s*y^a
-  lhs <- d*y+(1/y)
+  lhs <- del*y+(1/y)
   dy = rhs-lhs
   list(dy)
 }
@@ -116,7 +116,8 @@ renderPlot({
   if (input$model == "Solow")  {
     ggplot()+
       geom_line(aes(x = k, y = Solow1(input$s,k, input$a), color = "blue"))+
-      geom_line(aes(x=k,y=Solow2(input$d, input$n, k), color = "red"))
+      geom_line(aes(x=k,y=Solow2(input$d, k), color = "red"))+
+      theme_bw()
     #plot(k,Solow(input$s,k, input$a), type="l")
     #lines(k,Solow(input$s,k, -input$a), type="l")
     }
