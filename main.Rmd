@@ -47,17 +47,22 @@ Select your model and the value of each parameters.
 selectInput("model", label = "Economic Model:",
             choices = c("Solow", "Ramset", "OLG"), selected = "Solow")
 sliderInput("k", label = "Chart length (k):",
-            min = 1, max = 100, value = 10, step = 1)
+            min = 1, max = 100, value = 50, step = 1)
 sliderInput("s", label = "Saving rate:",
-            min = 0, max = 1, value =0.5, step = 0.01)
+            min = 0, max = 1, value =0.2, step = 0.01)
 sliderInput("a", label = "Elasticty:",
-            min = 0, max = 1, value =0.5, step = 0.01)
+            min = 0, max = 1, value =0.3, step = 0.01)
 sliderInput("d", label = "Depreciation:",
             min = 0, max = 1, value =0.02, step = 0.01)
 sliderInput("n", label = "Population growth rate:",
             min = 0, max = 1, value =0.5, step = 0.01)
 sliderInput("t", label = "Time",
-            min = 0, max = 300, value =50, step = 5)
+            min = 0, max = 300, value =200, step = 5)
+numericInput('k0', 
+             'Initial capital, k0:',
+             3,
+             min=0.5,
+             max=200)
 ```
 
 Column
@@ -85,8 +90,8 @@ renderPlot({
                       system = "one.dim",
                       state.names = 'k')
     
-    phaseR::trajectory(solow_de, 
-                  y0 = c(2.5,4.35,10,20,23,27), 
+phaseR::trajectory(solow_de, 
+                  y0 = input$k0, 
                   tlim = c(0,500),
                   parameters = c(input$s,input$a,input$d), 
                   system = "one.dim", 
@@ -151,4 +156,3 @@ Resources{data-navmenu='Models' data-icon='ion-merge'}
 ========================================================================
 
 In that page we can propose short econ/math developments on the models and/or links to the papers and teaching courses
-
