@@ -26,10 +26,10 @@ Solow2 <- function(d,n,k){
 solow_de <- function(t,y,parameters){
   s <- parameters[1]
   a <- parameters[2]
-  del <- parameters[3]
+  d <- parameters[3]
   #k <- parameters[4]
   rhs <- s*y^a
-  lhs <- del*y+(1/y)
+  lhs <- d*y+(1/y)
   dy = rhs-lhs
   list(dy)
 }
