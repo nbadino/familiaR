@@ -14,12 +14,24 @@ runtime: shiny
 library(datasets)
 library(ggplot2)
 data(faithful)
+
 Solow1 <- function(s,k,a){
   y <- s*k^a
   return <- y
 }
 Solow2 <- function(d,n,k){
   y <- d*k + n*k
+}
+
+solow_de <- function(t,y,parameters){
+  s <- parameters[1]
+  a <- parameters[2]
+  del <- parameters[3]
+  #k <- parameters[4]
+  rhs <- s*y^a
+  lhs <- del*y+(1/y)
+  dy = rhs-lhs
+  list(dy)
 }
 ```
 
@@ -35,21 +47,56 @@ Select your model and the value of each parameters.
 selectInput("model", label = "Economic Model:",
             choices = c("Solow", "Ramset", "OLG"), selected = "Solow")
 sliderInput("k", label = "Chart length (k):",
-            min = 1, max = 20, value = 10, step = 1)
+            min = 1, max = 100, value = 10, step = 1)
 sliderInput("s", label = "Saving rate:",
             min = 0, max = 1, value =0.5, step = 0.01)
 sliderInput("a", label = "Elasticty:",
             min = 0, max = 1, value =0.5, step = 0.01)
 sliderInput("d", label = "Depreciation:",
-            min = 0, max = 1, value =0.5, step = 0.01)
+            min = 0, max = 1, value =0.02, step = 0.01)
 sliderInput("n", label = "Population growth rate:",
             min = 0, max = 1, value =0.5, step = 0.01)
+sliderInput("t", label = "Time",
+            min = 0, max = 300, value =50, step = 5)
 ```
 
 Column
 -----------------------------------------------------------------------
 
 ### Numerical Simulations
+
+```{r}
+renderPlot({
+  if (input$model == "Solow")  {
+    phaseR::flowField(solow_de,
+              xlim   = c(0.0001, input$t),
+              ylim   = c(0.0001, input$k),
+              parameters = c(input$s,input$a,input$d),
+              points=10,
+              system = 'one.dim',
+              add = F,
+              xlab = 't',
+              ylab = 'dk/dt')
+    
+    phaseR::nullclines(solow_de,
+                      xlim   = c(0.0001, input$t),
+                      ylim <- c(0.0001,input$k),
+                      parameters = c(input$s,input$a,input$d),
+                      system = "one.dim",
+                      state.names = 'k')
+    
+    phaseR::trajectory(solow_de, 
+                  y0 = c(2.5,4.35,10,20,23,27), 
+                  tlim = c(0,500),
+                  parameters = c(input$s,input$a,input$d), 
+                  system = "one.dim", 
+                  colour = rep("black"),
+                  add = T)
+    }
+})
+
+```
+
 
 Column {.tabset}
 -----------------------------------------------------------------------
@@ -73,6 +120,20 @@ renderPlot({
 
 ### Phase Portrait
 
+```{r}
+renderPlot({
+  if (input$model == "Solow"){
+    phaseR::phasePortrait(solow_de,
+                      ylim <- c(0.5,input$k),
+                      parameters = c(input$s,input$a,input$d),
+                      col = 'black',
+                      add.grid = T,
+                      xlab='k',
+                      ylab='dk/dt')
+  }
+})
+
+```
 
 
 
@@ -90,3 +151,4 @@ Resources{data-navmenu='Models' data-icon='ion-merge'}
 ========================================================================
 
 In that page we can propose short econ/math developments on the models and/or links to the papers and teaching courses
+
