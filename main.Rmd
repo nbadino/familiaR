@@ -90,7 +90,7 @@ renderPlot({
                       system = "one.dim",
                       state.names = 'k')
     
-phaseR::trajectory(solow_de, 
+    phaseR::trajectory(solow_de, 
                   y0 = input$k0, 
                   tlim = c(0,500),
                   parameters = c(input$s,input$a,input$d), 
