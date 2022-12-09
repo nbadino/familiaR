@@ -1,1 +1,3 @@
-# econdyn
+# FamiliaR with Economic Dynamics
+
+"FamiliaR with Economic Dynamics" (henceforth FED) is a tool built as a Shiny application that aims to facilitate the study of dynamics in macroeconomic models with ordinary differential equations. FED exploits the possibilities offered by the PhaseR package, particularly in terms of representing phase portraits and flow fields, to facilitate graphical analysis, which can be modulated by the user, of models such as Solow-Swan, Ramsey-Cass-Koopmans , Goodwin... The tool is still under development and new models will be added, always with the aim of making the interface as configurable as possible by the user.
