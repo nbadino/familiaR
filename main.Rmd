@@ -13,8 +13,8 @@ runtime: shiny
 # load data in 'global' chunk so it can be shared by all users of the dashboard
 library(datasets)
 library(ggplot2)
+options(shiny.maxRequestSize = 30*1024^2)
 data(faithful)
-
 Solow1 <- function(s,k,a){
   y <- s*k^a
   return <- y
@@ -22,7 +22,6 @@ Solow1 <- function(s,k,a){
 Solow2 <- function(d,k){
   y <- d*k+k^-1
 }
-
 solow_de <- function(t,y,parameters){
   s <- parameters[1]
   a <- parameters[2]
@@ -45,24 +44,20 @@ Select your model and the value of each parameters.
 
 ```{r}
 selectInput("model", label = "Economic Model:",
-            choices = c("Solow", "Ramset", "OLG"), selected = "Solow")
-sliderInput("k", label = "Chart length (k):",
-            min = 1, max = 100, value = 50, step = 1)
-sliderInput("s", label = "Saving rate:",
-            min = 0, max = 1, value =0.2, step = 0.01)
-sliderInput("a", label = "Elasticty:",
-            min = 0, max = 1, value =0.3, step = 0.01)
-sliderInput("d", label = "Depreciation:",
-            min = 0, max = 1, value =0.02, step = 0.01)
-sliderInput("n", label = "Population growth rate:",
-            min = 0, max = 1, value =0.5, step = 0.01)
-sliderInput("t", label = "Time",
-            min = 0, max = 300, value =200, step = 5)
-numericInput('k0', 
-             'Initial capital, k0:',
-             3,
-             min=0.5,
-             max=200)
+            choices = c("Solow", "Ramsey", "OLG", "Goodwin"), selected = "Solow")
+conditionalPanel("input.model == 'Solow'",
+                 sliderInput("k", label = "Chart length (k):", min = 1, max = 100, value = 20, step = 1),
+                 sliderInput("s", label = "Saving rate:", min = 0, max = 1, value =0.2, step = 0.01),
+                 sliderInput("a", label = "Elasticty:", min = 0, max = 1, value =0.3, step = 0.01),
+                 sliderInput("d", label = "Depreciation:", min = 0, max = 1, value =0.02, step = 0.01),
+                 sliderInput("n", label = "Population growth rate:", min = 0, max = 1, value =0.5, step = 0.01),
+                 sliderInput("t", label = "Time", min = 0, max = 100, value =20, step = 5),
+                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200)
+)
+
+
+
+
 ```
 
 Column
@@ -99,7 +94,6 @@ renderPlot({
                   add = T)
     }
 })
-
 ```
 
 
@@ -138,7 +132,6 @@ renderPlot({
                       ylab='dk/dt')
   }
 })
-
 ```
 
 
