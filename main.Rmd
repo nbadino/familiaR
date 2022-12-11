@@ -75,7 +75,8 @@ conditionalPanel("input.model == 'Solow'",
                  sliderInput("d", label = "Depreciation:", min = 0, max = 1, value =0.02, step = 0.01),
                  sliderInput("n", label = "Population growth rate:", min = 0, max = 1, value =0.5, step = 0.01),
                  sliderInput("t", label = "Time", min = 0, max = 100, value =20, step = 5),
-                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200)
+                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200),
+                 actionButton("go","(Re)start Numeric Simulation")
 )
 
 
@@ -91,6 +92,7 @@ Column
 ```{r}
 renderPlot({
   if (input$model == "Solow")  {
+    req(input$go)
     phaseR::flowField(solow_de,
               xlim   = c(0.0001, input$t),
               ylim   = c(0.0001, input$k),
