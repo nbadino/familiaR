@@ -32,6 +32,29 @@ solow_de <- function(t,y,parameters){
   dy = rhs-lhs
   list(dy)
 }
+goodwin2<-function(t, state, parameters) {
+  with(as.list(c(state, parameters)),{
+    dV <- (a-b*U)*V
+    dU <- (-c+d*V)*U
+    dQ <- ((1-U)/sigma)*Q
+    list(c(dV, dU, dQ))})}
+goodwin <- function(t, y, parameters) {
+  x <- y[1]
+  y <- y[2]
+  sigma <- parameters[1]
+  alpha <- parameters[2]
+  beta <- parameters[3]
+  gamma <- parameters[4]
+  rho <- parameters[5]
+  A <- 1/sigma - alpha - beta
+  B <- 1/sigma
+  C <- gamma+alpha
+  D <- rho
+  dy <- numeric(2)
+  dy[1] <- A*x - B*x*y
+  dy[2] <- C*x*y - D*y
+  list(dy)
+}
 ```
 
 Dynamics {data-navmenu='Models' data-icon='ion-levels'}
@@ -92,7 +115,22 @@ renderPlot({
                   system = "one.dim", 
                   colour = rep("black"),
                   add = T)
-    }
+  }
+  if (input$model == "Goodwin")  {
+    parameters <- c(a = 1.5,
+                b = 1.8,
+                c = 0.8,
+                d = 0.8,
+                sigma=0.8)
+    state <- c(V = 0.5,
+           U = 1,
+           Q = 1)
+    times <- seq(0, 20, by = 0.01)
+    out <- deSolve::ode(y = state, times = times, func = goodwin2, parms = parameters)
+    par(oma = c(0, 0, 3, 0))
+    plot(out, xlab = "time", ylab = "-")
+  }
+    
 })
 ```
 
@@ -118,7 +156,7 @@ renderPlot({
 })
 ```
 
-### Phase Portrait
+### Phase Portrait/Phase Diagram
 
 ```{r}
 renderPlot({
@@ -131,6 +169,25 @@ renderPlot({
                       xlab='k',
                       ylab='dk/dt')
   }
+  if (input$model == "Goodwin"){
+    phaseR::flowField(goodwin, 
+                                     xlim = c(0,1.5), 
+                                     ylim = c(0, 1.5), 
+                                     parameters = c(0.25, 0.6, 0.2, 0.3, 0.4), 
+                                     points = 19, 
+                                     add = FALSE)
+    phaseR::nullclines(goodwin, 
+                                       xlim = c(0,1.5), 
+                                       ylim = c(0, 1.5),
+                                       parameters = c(0.25, 0.6, 0.2, 0.3, 0.4), 
+                                       points = 500)
+  y0 <- matrix(c(0.2, 1, 0.6, 1, 1.1, 1), ncol = 2, nrow = 3, byrow = TRUE)
+  phaseR::trajectory(goodwin, 
+                                       y0 = y0, 
+                                       tlim = c(0,10),
+                                       parameters = c(0.25, 0.6, 0.2, 0.3, 0.4), 
+                                       colour = rep("black", 3))
+}
 })
 ```
 
