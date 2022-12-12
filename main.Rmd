@@ -79,6 +79,17 @@ conditionalPanel("input.model == 'Solow'",
                  actionButton("go","(Re)start Numeric Simulation")
 )
 
+conditionalPanel("input.model == 'Ramsey'",
+                 sliderInput("t", label = "Time", min = 0, max = 200, value = 50, step = 5),
+                 sliderInput("c", label = "Consumption, dc/dt",min = 0, max = 5, value = 3, step = 0.05),
+                 sliderInput("k", label = "Capital, dk/dt", min = 0, max = 50, value = 30, step = 0.5),
+                 sliderInput("theta", label = "Elasticity, tendendy of consumers to smooth their consumption over time:", min = 0, max = 1, value = 0.03, step = 0.01),
+                 sliderInput("rho", label = "Rate at which consumers discount their future consumption", min = 0, max = 1, value = 0.2, step = 0.01),
+                 sliderInput("delta", label = "Depreciation rate of capital", min = 0, max = 1, value = 0.1, step = 0.01),
+                 sliderInput("alpha", label = "Elasticity parameter (measuring the responsiveness of the output production to changes in the input capital):", min = 0, max = 1, value = 0.3, step = 0.01),
+                 
+)    
+
 
 
 
@@ -118,7 +129,7 @@ renderPlot({
                   colour = rep("black"),
                   add = T)
   }
-  if (input$model == "Goodwin")  {
+  else if (input$model == "Goodwin")  {
     parameters <- c(a = 1.5,
                 b = 1.8,
                 c = 0.8,
@@ -131,6 +142,30 @@ renderPlot({
     out <- deSolve::ode(y = state, times = times, func = goodwin2, parms = parameters)
     par(oma = c(0, 0, 3, 0))
     plot(out, xlab = "time", ylab = "-")
+  }
+  
+  else if (input$model == "Ramsey"){
+    ramsey.flowField <- phaseR::flowField(
+    ramsey,
+    xlim = c(0.01,input$k),
+    ylim = c(0.01,input$c),
+    parameters = c(0.2,0.03,0.1,0.3),
+                 points = 10,
+                 add=F
+)
+    grid()
+    
+    ramsey.nullclines <- phaseR::nullclines(
+    ramsey,
+    xlim = c(0,input$k),
+    ylim = c(0.01,input$c),
+    state.names = c('k','c'),
+    parameters = c(0.2,0.03,0.1,0.3),
+    points = 500,
+    col = c("blue","red"),
+    add.legend=T
+)
+    
   }
     
 })
