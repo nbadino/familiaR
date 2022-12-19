@@ -2,17 +2,27 @@
 title: "FamiliaR with Dynamics"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
+    orientation: column
     social: menu
     source_code: embed
     theme: spacelab
 runtime: shiny
 ---
 
+<style>
+
+.form-control {
+    width: 90%;
+    }
+
+</style>
+
+
 ```{r global, include=FALSE}
 # load data in 'global' chunk so it can be shared by all users of the dashboard
 library(datasets)
 library(ggplot2)
+library(bslib)
 options(shiny.maxRequestSize = 30*1024^2)
 data(faithful)
 Solow1 <- function(s,k,a){
@@ -75,10 +85,9 @@ conditionalPanel("input.model == 'Solow'",
                  sliderInput("d", label = "Depreciation:", min = 0, max = 1, value =0.02, step = 0.01),
                  sliderInput("n", label = "Population growth rate:", min = 0, max = 1, value =0.5, step = 0.01),
                  sliderInput("t", label = "Time", min = 0, max = 100, value =20, step = 5),
-                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200),
-                 actionButton("go","(Re)start Numeric Simulation")
+                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200)
+                 
 )
-
 conditionalPanel("input.model == 'Ramsey'",
                  sliderInput("t", label = "Time", min = 0, max = 200, value = 50, step = 5),
                  sliderInput("c", label = "Consumption, dc/dt",min = 0, max = 5, value = 3, step = 0.05),
@@ -89,21 +98,93 @@ conditionalPanel("input.model == 'Ramsey'",
                  sliderInput("alpha", label = "Elasticity parameter (measuring the responsiveness of the output production to changes in the input capital):", min = 0, max = 1, value = 0.3, step = 0.01),
                  
 )    
-
-
-
-
 ```
 
 Column
 -----------------------------------------------------------------------
 
+
+### Downloads per sec (last 5 min) {data-height=200}
+```{r}
+ 
+sliderInput("initial_values", label="initial values", min=1, max=5, value=1, step=1)
+conditionalPanel("input.initial_values == 1",
+                 numericInput('aa', 'a', 1 ))
+conditionalPanel("input.initial_values == 2",
+                 fillRow(numericInput('aa', 'a', 1),
+                         numericInput('bb', 'b', 1)))
+conditionalPanel("input.initial_values == 3",
+                 fillRow(numericInput('aa', 'a', 1),
+                         numericInput('bb', 'b', 1),
+                         numericInput('cc', 'c', 1)))
+conditionalPanel("input.initial_values == 4",
+                 fillRow(
+                   numericInput('aa', 'a', 1),
+                   numericInput('bb', 'b', 1),
+                   numericInput('cc', 'c', 1),
+                   numericInput('dd', 'd', 1))
+                 )
+                 
+conditionalPanel("input.initial_values == 5",
+                 fillRow(
+                   numericInput('aa', 'a', 1),
+                   numericInput('bb', 'b', 1),
+                   numericInput('cc', 'c', 1),
+                   numericInput('dd', 'd', 1),
+                   numericInput('ee', 'e', 1))
+                 )
+actionButton("go","(Re)start Numeric Simulation", style="background-color: #ec7063 ; border-radius: 10px !important; border: none; position:absolute; bottom: 5px; margin: auto;"
+)
+
+```
+
+
+
+
+
 ### Numerical Simulations
 
 ```{r}
+initial_val <- eventReactive(input$go, {
+  print(typeof(input$initial_values))
+  nval <- input$initial_values
+  a <- input$aa
+  b <- input$bb
+  c <- input$cc
+  d <- input$dd
+  e <- input$ee
+  print(paste("nval=",nval))
+  if(nval==1){"a"} 
+  else if (nval==2){return("ab")}
+  else if(nval==3){return("abc")}
+  else if(nval==4){return("abcd")}
+  else {return("abcde")}
+  a <- input$aa
+  b <- input$bb
+  c <- input$cc
+  d <- input$dd
+  e <- input$ee
+
+  # ifelse(nval==1, c(a),
+  #        ifelse(nval==2, c(a,b),
+  #               ifelse(nval==3, c(a,b,c), 
+  #                      ifelse(nval==4, c(a,b,c,d), 
+  #                             c(a,b,c,d,e)))))
+  })
+
 renderPlot({
+  a <- input$aa
+  b <- input$bb
+  c <- input$cc
+  d <- input$dd
+  e <- input$ee
+  if(initial_val()=="a"){ini <- c(a)}
+  else if(initial_val()=="ab"){ini <- c(a,b)}
+  else if(initial_val()=="abc"){ini <- c(a,b,c)}
+  else if(initial_val()=="abcd"){ini <- c(a,b,c,d)}
+  else{ini <- c(a,b,c,d,e)}
+  print(ini)
   if (input$model == "Solow")  {
-    req(input$go)
     phaseR::flowField(solow_de,
               xlim   = c(0.0001, input$t),
               ylim   = c(0.0001, input$k),
@@ -121,12 +202,12 @@ renderPlot({
                       system = "one.dim",
                       state.names = 'k')
     
-    phaseR::trajectory(solow_de, 
-                  y0 = input$k0, 
-                  tlim = c(0,500),
+    phaseR::trajectory(solow_de,
+                  y0 = ini, 
+                  tlim = c(0, input$t),
                   parameters = c(input$s,input$a,input$d), 
                   system = "one.dim", 
-                  colour = rep("black"),
+                  #colour = rep("black"),
                   add = T)
   }
   else if (input$model == "Goodwin")  {
@@ -171,9 +252,8 @@ renderPlot({
 })
 ```
 
-
 Column {.tabset}
------------------------------------------------------------------------
+--------------------------------------------------------------------
 
 ### Dynamics
 
