@@ -104,7 +104,7 @@ Column
 -----------------------------------------------------------------------
 
 
-### Downloads per sec (last 5 min) {data-height=200}
+### Set initial points
 ```{r}
  
 sliderInput("initial_values", label="initial values", min=1, max=5, value=1, step=1)
