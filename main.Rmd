@@ -2,17 +2,27 @@
 title: "FamiliaR with Dynamics"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
+    orientation: column
     social: menu
     source_code: embed
     theme: spacelab
 runtime: shiny
 ---
 
+<style>
+
+.form-control {
+    width: 90%;
+    }
+
+</style>
+
+
 ```{r global, include=FALSE}
 # load data in 'global' chunk so it can be shared by all users of the dashboard
 library(datasets)
 library(ggplot2)
+library(bslib)
 options(shiny.maxRequestSize = 30*1024^2)
 data(faithful)
 Solow1 <- function(s,k,a){
@@ -75,10 +85,9 @@ conditionalPanel("input.model == 'Solow'",
                  sliderInput("d", label = "Depreciation:", min = 0, max = 1, value =0.02, step = 0.01),
                  sliderInput("n", label = "Population growth rate:", min = 0, max = 1, value =0.5, step = 0.01),
                  sliderInput("t", label = "Time", min = 0, max = 100, value =20, step = 5),
-                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200),
-                 actionButton("go","(Re)start Numeric Simulation")
+                 numericInput('k0', 'Initial capital, k0:', 3, min=0.5, max=200)
+                 
 )
-
 conditionalPanel("input.model == 'Ramsey'",
                  sliderInput("t", label = "Time", min = 0, max = 200, value = 50, step = 5),
                  sliderInput("c", label = "Consumption, dc/dt",min = 0, max = 5, value = 3, step = 0.05),
@@ -89,91 +98,142 @@ conditionalPanel("input.model == 'Ramsey'",
                  sliderInput("alpha", label = "Elasticity parameter (measuring the responsiveness of the output production to changes in the input capital):", min = 0, max = 1, value = 0.3, step = 0.01),
                  
 )    
-
-
-
-
 ```
 
 Column
 -----------------------------------------------------------------------
 
-### Numerical Simulations
 
+### Set initial points
 ```{r}
-renderPlot({
-  if (input$model == "Solow")  {
-    req(input$go)
-    phaseR::flowField(solow_de,
-              xlim   = c(0.0001, input$t),
-              ylim   = c(0.0001, input$k),
-              parameters = c(input$s,input$a,input$d),
-              points=10,
-              system = 'one.dim',
-              add = F,
-              xlab = 't',
-              ylab = 'dk/dt')
-    
-    phaseR::nullclines(solow_de,
-                      xlim   = c(0.0001, input$t),
-                      ylim <- c(0.0001,input$k),
-                      parameters = c(input$s,input$a,input$d),
-                      system = "one.dim",
-                      state.names = 'k')
-    
-    phaseR::trajectory(solow_de, 
-                  y0 = input$k0, 
-                  tlim = c(0,500),
-                  parameters = c(input$s,input$a,input$d), 
-                  system = "one.dim", 
-                  colour = rep("black"),
-                  add = T)
-  }
-  else if (input$model == "Goodwin")  {
-    parameters <- c(a = 1.5,
-                b = 1.8,
-                c = 0.8,
-                d = 0.8,
-                sigma=0.8)
-    state <- c(V = 0.5,
-           U = 1,
-           Q = 1)
-    times <- seq(0, 20, by = 0.01)
-    out <- deSolve::ode(y = state, times = times, func = goodwin2, parms = parameters)
-    par(oma = c(0, 0, 3, 0))
-    plot(out, xlab = "time", ylab = "-")
-  }
-  
-  else if (input$model == "Ramsey"){
-    ramsey.flowField <- phaseR::flowField(
-    ramsey,
-    xlim = c(0.01,input$k),
-    ylim = c(0.01,input$c),
-    parameters = c(0.2,0.03,0.1,0.3),
-                 points = 10,
-                 add=F
+ 
+sliderInput("initial_values", label="initial values", min=1, max=5, value=1, step=1)
+conditionalPanel("input.initial_values == 1",
+                 numericInput('aa1', 'a', 1 ))
+conditionalPanel("input.initial_values == 2",
+                 fillRow(numericInput('aa2', 'a', 1),
+                         numericInput('bb2', 'b', 1)))
+conditionalPanel("input.initial_values == 3",
+                 fillRow(numericInput('aa3', 'a', 1),
+                         numericInput('bb3', 'b', 1),
+                         numericInput('cc3', 'c', 1)))
+conditionalPanel("input.initial_values == 4",
+                 fillRow(
+                   numericInput('aa4', 'a', 1),
+                   numericInput('bb4', 'b', 1),
+                   numericInput('cc4', 'c', 1),
+                   numericInput('dd4', 'd', 1))
+                 )
+                 
+conditionalPanel("input.initial_values == 5",
+                 fillRow(
+                   numericInput('aa5', 'a', 1),
+                   numericInput('bb5', 'b', 1),
+                   numericInput('cc5', 'c', 1),
+                   numericInput('dd5', 'd', 1),
+                   numericInput('ee5', 'e', 1))
+                 )
+actionButton("go","(Re)start Numeric Simulation", style="background-color: #ec7063 ; border-radius: 10px !important; border: none; position:absolute; bottom: 5px; margin: auto;"
 )
-    grid()
-    
-    ramsey.nullclines <- phaseR::nullclines(
-    ramsey,
-    xlim = c(0,input$k),
-    ylim = c(0.01,input$c),
-    state.names = c('k','c'),
-    parameters = c(0.2,0.03,0.1,0.3),
-    points = 500,
-    col = c("blue","red"),
-    add.legend=T
-)
-    
-  }
-    
-})
+
 ```
 
 
+
+
+
+### Numerical Simulations
+
+```{r}
+ initial_val <- eventReactive(input$go, {
+   print(typeof(input$initial_values))
+   nval <- input$initial_values
+   print(paste("nval=",nval))
+   if(nval==1){return(c(input$aa1))} 
+   else if (nval==2){return(c(input$aa2,input$bb2))}
+   else if(nval==3){return(c(input$aa3,input$bb3,input$cc3))}
+   else if(nval==4){return(c(input$aa4,input$bb4,input$cc4,input$dd4))}
+   else {return(c(input$aa5,input$bb5,input$cc5,input$dd5,input$ee5))}
+ 
+   # ifelse(nval==1, c(a),
+   #        ifelse(nval==2, c(a,b),
+   #               ifelse(nval==3, c(a,b,c), 
+   #                      ifelse(nval==4, c(a,b,c,d), 
+   #                             c(a,b,c,d,e)))))
+   })
+ 
+ renderPlot({
+   ini <- initial_val()
+   if (input$model == "Solow")  {
+     phaseR::flowField(solow_de,
+               xlim   = c(0.0001, input$t),
+               ylim   = c(0.0001, input$k),
+               parameters = c(input$s,input$a,input$d),
+               points=10,
+               system = 'one.dim',
+               add = F,
+               xlab = 't',
+               ylab = 'dk/dt')
+     
+     phaseR::nullclines(solow_de,
+                       xlim   = c(0.0001, input$t),
+                       ylim <- c(0.0001,input$k),
+                       parameters = c(input$s,input$a,input$d),
+                       system = "one.dim",
+                       state.names = 'k')
+     
+     phaseR::trajectory(solow_de,
+                   y0 = ini, 
+                   tlim = c(0, input$t),
+                   parameters = c(input$s,input$a,input$d), 
+                   system = "one.dim", 
+                   #colour = rep("black"),
+                   add = T)
+   }
+   else if (input$model == "Goodwin")  {
+     parameters <- c(a = 1.5,
+                 b = 1.8,
+                 c = 0.8,
+                 d = 0.8,
+                 sigma=0.8)
+     state <- c(V = 0.5,
+            U = 1,
+            Q = 1)
+     times <- seq(0, 20, by = 0.01)
+     out <- deSolve::ode(y = state, times = times, func = goodwin2, parms = parameters)
+     par(oma = c(0, 0, 3, 0))
+     plot(out, xlab = "time", ylab = "-")
+   }
+   
+   else if (input$model == "Ramsey"){
+     ramsey.flowField <- phaseR::flowField(
+     ramsey,
+     xlim = c(0.01,input$k),
+     ylim = c(0.01,input$c),
+     parameters = c(0.2,0.03,0.1,0.3),
+                  points = 10,
+                  add=F
+ )
+     grid()
+     
+     ramsey.nullclines <- phaseR::nullclines(
+     ramsey,
+     xlim = c(0,input$k),
+     ylim = c(0.01,input$c),
+     state.names = c('k','c'),
+     parameters = c(0.2,0.03,0.1,0.3),
+     points = 500,
+     col = c("blue","red"),
+     add.legend=T
+ )
+     
+   }
+     
+ })
+```
+
 Column {.tabset}
------------------------------------------------------------------------
+--------------------------------------------------------------------
 
 ### Dynamics
 
