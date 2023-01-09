@@ -1,3 +1,4 @@
+#The following code is the yaml code that define the basic instruction for a flexdashboard project
 ---
 title: "FamiliaR with Dynamics"
 output: 
@@ -9,6 +10,7 @@ output:
 runtime: shiny
 ---
 
+#The following code is a css code that adjust the size of numerical simulation input sliders windows
 <style>
 
 .form-control {
@@ -19,13 +21,14 @@ runtime: shiny
 
 
 ```{r global, include=FALSE}
-# load data in 'global' chunk so it can be shared by all users of the dashboard
+#Required libraries for the project
 library(datasets)
 library(ggplot2)
 library(bslib)
 library(shinycssloaders)
 options(shiny.maxRequestSize = 30*1024^2)
 data(faithful)
+#Dynamic functions used for the project
 Solow1 <- function(s,k,a){
   y <- s*k^a
   return <- y
