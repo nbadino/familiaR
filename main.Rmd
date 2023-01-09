@@ -125,8 +125,10 @@ Column {.sidebar}
 Select your model and the value of each parameters.
 
 ```{r}
+#selectInpt object that asks the user which economic model has to be studied
 selectInput("model", label = "Economic Model:",
             choices = c("Solow", "Ramsey", "OLG", "Goodwin"), selected = "Solow")
+#set of conditional panels object which, depending on selectInput user choice, "reactively" display the respective parameter sliders. A sliderInput object creates a slider given some options
 conditionalPanel("input.model == 'Solow'",
                  sliderInput("k", label = "Chart length (k):", min = 1, max = 100, value = 20, step = 1),
                  sliderInput("s", label = "Saving rate:", min = 0, max = 1, value =0.2, step = 0.01),
@@ -161,7 +163,7 @@ Column
 
 ### Initial values {data-height=350}
 ```{r}
- 
+ #the following code display, depending on a sliderInput choice, the initial conditions for all the available model. It is important that each shiny object take a univoque name otherwise errors will occur. This is the reason for very strange names (e.g gaa1), sorry Pier Giuseppe for our lack of fantasy ;)
  ####################################################
 #Conditional panel for initial values for Solow model#
  ####################################################
@@ -285,6 +287,8 @@ conditionalPanel("input.model == 'Goodwin'",
 
 ### Numerical Simulations
 
+#this is one of the trickiest part of our code, we want the plot to update every time the initial values are modified AND the go button is pressed. To do so we define the initial_val function that uses the eventReactive function. This function update the initial_val every time the go button is pressed.
+At the same time, the renderPlot function is waiting for any update inside the curly brackets. Once the go button is pressed the plot is rendered.
 ```{r}
   initial_val <- eventReactive(input$go_sol, {
       print(input$initial_values)
@@ -313,7 +317,7 @@ conditionalPanel("input.model == 'Solow'",
                                      system = 'one.dim',
                                      add = F,
                                      xlab = 't',
-                                     ylab = 'dk/dt')
+                                     ylab = 'dk/dt') #flowfield are generated trhough phaseR, as nullclines and trajectories.
                    phaseR::nullclines(solow_de,
                                       xlim   = c(0.0001, input$t),
                                       ylim <- c(0.0001,input$k),
@@ -366,8 +370,7 @@ Column {.tabset}
 ### Dynamics
 
 ```{r}
-#renderPrint(input$model)
-#uiOutput("dynamic")
+#the following code gave annoyng issues about graphical representation. The problems were solved trough absolutePanel() and specific width and height commands.
 fluidPage(
 conditionalPanel("input.model == 'Solow'",
                  absolutePanel(
