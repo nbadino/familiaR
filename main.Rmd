@@ -125,7 +125,7 @@ Select your model and the value of each parameters.
 ```{r}
 #selectInpt object that asks the user which economic model has to be studied
 selectInput("model", label = "Economic Model:",
-            choices = c("Solow", "Ramsey", "OLG", "Goodwin"), selected = "Solow")
+            choices = c("Solow", "Ramsey", "Goodwin"), selected = "Solow")
 #set of conditional panels object which, depending on selectInput user choice, "reactively" display the respective parameter sliders. A sliderInput object creates a slider given some options
 conditionalPanel("input.model == 'Solow'",
                  sliderInput("k", label = "Chart length (k):", min = 1, max = 100, value = 20, step = 1),
