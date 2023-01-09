@@ -287,9 +287,10 @@ conditionalPanel("input.model == 'Goodwin'",
 
 ### Numerical Simulations
 
+
+```{r}
 #this is one of the trickiest part of our code, we want the plot to update every time the initial values are modified AND the go button is pressed. To do so we define the initial_val function that uses the eventReactive function. This function update the initial_val every time the go button is pressed.
 At the same time, the renderPlot function is waiting for any update inside the curly brackets. Once the go button is pressed the plot is rendered.
-```{r}
   initial_val <- eventReactive(input$go_sol, {
       print(input$initial_values)
    print(typeof(input$initial_values))
