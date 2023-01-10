@@ -198,7 +198,6 @@ actionButton("go_sol","(Re)start Numeric Simulation Solow", style="background-co
  ######################################################
 #Conditional panel for initial values for Goodwin model#
  #####################################################
-#y0 <- matrix(c(0.2, 1, 0.6, 1, 1.1, 1), ncol = 2, nrow = 3, byrow = TRUE)
 conditionalPanel("input.model == 'Goodwin'",
                  fluidPage(
                    fluidRow(
@@ -287,7 +286,9 @@ conditionalPanel("input.model == 'Goodwin'",
 
 
 ```{r}
-#this is one of the trickiest part of our code, we want the plot to update every time the initial values are modified AND the go button is pressed. To do so we define the initial_val function that uses the eventReactive function. This function update the initial_val every time the go button is pressed. At the same time, the renderPlot function is waiting for any update inside the curly brackets. Once the go button is pressed the plot is rendered.
+#This is one of the trickiest part of our code, we want the plot to update every time the initial values are modified AND the go button is pressed. To do so we define the initial_val function that uses the eventReactive function. This function update the initial_val every time the go button is pressed. At the same time, the renderPlot function is waiting for any update inside the curly brackets. Once the go button is pressed the plot is rendered.
+
+#Solow Model
   initial_val <- eventReactive(input$go_sol, {
       print(input$initial_values)
    print(typeof(input$initial_values))
@@ -299,8 +300,13 @@ conditionalPanel("input.model == 'Goodwin'",
    else if(nval==4){return(c(input$aa4,input$bb4,input$cc4,input$dd4))}
    else {return(c(input$aa5,input$bb5,input$cc5,input$dd5,input$ee5))}})
    
+#Goodwin Model
 initial_val_g <- eventReactive(input$go_good, {
   return(c(input$gaa2,input$gbb2))})
+  
+#Ramsey Model
+initial_val_r <- eventReactive(input$go_ram, {
+  return(c(input$raa2,input$rbb2))})
  
 conditionalPanel("input.model == 'Solow'",
                  absolutePanel(
@@ -368,7 +374,7 @@ Column {.tabset}
 ### Dynamics
 
 ```{r}
-#the following code gave annoyng issues about graphical representation. The problems were solved trough absolutePanel() and specific width and height commands.
+#The following code gave annoyng issues about graphical representation. The problems were solved trough absolutePanel() and specific width and height commands.
 fluidPage(
 conditionalPanel("input.model == 'Solow'",
                  absolutePanel(
@@ -389,10 +395,28 @@ conditionalPanel("input.model == 'Solow'",
 ```{r}
 y_in <- eventReactive(input$go_good, {
   if(input$initial_values_g==1){
-    return(matrix(c(input$gaa1, input$gbb1), ncol = 1, nrow = 2, byrow = TRUE))}
+    return(matrix(c(input$gaa1, input$gbb1), ncol = 1, nrow = 2, byrow = TRUE))
+    }
   else if(input$initial_values_g==2){
-      return(matrix(c(input$gaa2, input$gbb2, input$gcc2, input$gdd2), ncol = 2, nrow = 2, byrow = TRUE))}
-  else{return(matrix(c(input$gaa3, input$gbb3, input$gcc3, input$gdd3, input$gee3, input$gff3), ncol = 3, nrow = 2, byrow = TRUE))}})
+      return(matrix(c(input$gaa2, input$gbb2, input$gcc2, input$gdd2), ncol = 2, nrow = 2, byrow = TRUE))
+      }
+  else{return(matrix(c(input$gaa3, input$gbb3, input$gcc3, input$gdd3, input$gee3, input$gff3), ncol = 3, nrow = 2, byrow = TRUE))
+    }
+  }
+  )
+  
+
+y_in_r <- eventReactive(input$go_ram, {
+  if(input$initial_values_r==1){
+    return(matrix(c(input$raa1,input$raa2), ncol=1, nrow = 2, byrow = TRUE))
+    }
+  else if(input$initial_values_r==2){
+      return(matrix(c(input$raa2, input$rbb2, input$rcc2, input$rdd2), ncol = 2, nrow = 2, byrow = TRUE))
+    }
+  else{return(matrix(c(input$raa3, input$rbb3, input$rcc3, input$rdd3, input$ree3, input$rff3), ncol = 3, nrow = 2, byrow = TRUE))
+    }
+  }
+  )
 
 conditionalPanel("input.model == 'Solow'",
                  absolutePanel(
@@ -429,27 +453,39 @@ conditionalPanel("input.model == 'Goodwin'",
                                       tlim = c(0,input$tg),
                                       parameters = c(input$sigmag, input$alphag, input$betag, input$gammag, input$rhog), 
                                       colour = rep("black", 3))})))
+                                      
 conditionalPanel("input.model == 'Ramsey'",
                  absolutePanel(
                    width="100%", height = "100%",
                    renderPlot({
+                     y0 <- y_in_r()
                      print(input)
                      ramsey.flowField <- phaseR::flowField(ramsey,
                                                            xlim = c(0.01,input$kr),
                                                            ylim = c(0.01,input$cr),
-                                                           parameters = c(0.2,0.03,0.1,0.3),
+                                                           parameters = c(input$thetar,input$rhor,input$deltar,input$alphar),
                                                            points = 10,
                                                            add=F)
-                     grid()
-                     ramsey.nullclines <- phaseR::nullclines(
-                       ramsey,
-                       xlim = c(0,input$kr),
-                       ylim = c(0.01,input$cr),
-                       state.names = c('k','c'),
-                       parameters = c(0.2,0.03,0.1,0.3),
-                       points = 500,
-                       col = c("blue","red"),
-                       add.legend=T)})
+
+                     ramsey.nullclines <- phaseR::nullclines(ramsey,
+                                                             xlim = c(0,input$kr),
+                                                             ylim = c(0.01,input$cr),
+                                                             state.names = c('k','c'),
+                                                             parameters = c(input$thetar,input$rhor,input$deltar,input$alphar),
+                                                             points = 500,
+                                                             col = c("blue","red"),
+                                                             add.legend=T)
+                     
+                     ramsey.trajectories <- phaseR::trajectory(
+                         ramsey,
+                         y0 = y0,
+                         tlim = c(0,100),
+                         parameters = c(input$thetar,input$rhor,input$deltar,input$alphar),
+                         col = rep('black',3)
+                         )
+                     })
+                   
+                   
                  ))
 ```
 
