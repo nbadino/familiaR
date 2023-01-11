@@ -19,14 +19,13 @@ runtime: shiny
 
 
 ```{r global, include=FALSE}
-#Required libraries for the project
+# load data in 'global' chunk so it can be shared by all users of the dashboard
 library(datasets)
 library(ggplot2)
 library(bslib)
 library(shinycssloaders)
 options(shiny.maxRequestSize = 30*1024^2)
 data(faithful)
-#Dynamic functions used for the project
 Solow1 <- function(s,k,a){
   y <- s*k^a
   return <- y
@@ -109,7 +108,7 @@ shone <- function(t, y, parameters){
   a2 <- h/(1-b*(1-tau)+((h*k)/d))
   dy <- numeric(2)
   dy[1] <- a1*mdot-alpha*(a1-a2*beta)*(ry-yn)-a1*pie
-  dy[2] <- beta*alpha*(y-yn)
+  dy[2] <- beta*alpha*(ry-yn)
   list(dy)
 }
 ```
@@ -123,10 +122,8 @@ Column {.sidebar}
 Select your model and the value of each parameters.
 
 ```{r}
-#selectInpt object that asks the user which economic model has to be studied
 selectInput("model", label = "Economic Model:",
-            choices = c("Solow", "Ramsey", "Goodwin"), selected = "Solow")
-#set of conditional panels object which, depending on selectInput user choice, "reactively" display the respective parameter sliders. A sliderInput object creates a slider given some options
+            choices = c("Solow", "Ramsey", "Shone", "Goodwin"), selected = "Solow")
 conditionalPanel("input.model == 'Solow'",
                  sliderInput("k", label = "Chart length (k):", min = 1, max = 100, value = 20, step = 1),
                  sliderInput("s", label = "Saving rate:", min = 0, max = 1, value =0.2, step = 0.01),
@@ -153,6 +150,21 @@ conditionalPanel("input.model == 'Goodwin'",
                  sliderInput("sigmag", label = "Capital-output ratio", min = 0, max = 5, value = 3, step = 0.0001),
                  sliderInput("tg", label = "Time", min=1, max=1000, value=130, step=1)
                  )
+
+conditionalPanel("input.model == 'Shone'",
+                 sliderInput("c0s", label = "Initial level of cons.", min = 0, max = 50, value = 10, step = 1),
+                 sliderInput("i0s", label = "Initial level of invest.", min = 0, max = 50, value = 5, step = 1),
+                 sliderInput("Gs", label = "Government spendings", min = 0, max = 50, value = 5.5, step = 1),
+                 sliderInput("bs", label = "b par. in the IS",  min = 0, max = 1, value = 0.8, step = 0.05),
+                 sliderInput("ks", label = "k par. in the LM", min = 0, max = 1, value = 0.05, step = 0.01),
+                 sliderInput("ds", label = "d parameter in the LM", min = 0, max = 1, value = 0.05, step = 0.01),
+                 sliderInput("hs", label = "h par. in the i", min = 0, max = 1, value = 0.1, step = 0.01),
+                 sliderInput("taus", label = "Exogenous tax rate", min = 0, max = 1, value = 0.25, step = 0.01),
+                 sliderInput("alphas", label = "Weight par. Philips curve", min = 0, max = 1, value = 0.1, step = 0.01),
+                 sliderInput("betas", label = "Beta parameter", min = 0, max = 10, value = 1, step = 0.5),
+                 sliderInput("mdots", label = "Dynamics of the M. market", min = 0, max = 0.5, value = 0.01, step = 0.01),
+                 sliderInput("yns", "Long-term output", min = 0, max = 10, value = 1, step = 0.5)
+                 )
 ```
 
 Column
@@ -161,43 +173,44 @@ Column
 
 ### Initial values {data-height=350}
 ```{r}
- #the following code display, depending on a sliderInput choice, the initial conditions for all the available model. It is important that each shiny object take a univoque name otherwise errors will occur. This is the reason for very strange names (e.g gaa1), sorry Pier Giuseppe for our lack of fantasy ;)
+ 
  ####################################################
 #Conditional panel for initial values for Solow model#
  ####################################################
 conditionalPanel("input.model == 'Solow'",
-sliderInput("initial_values", label="initial values", min=1, max=5, value=1, step=1),
-conditionalPanel("input.initial_values == 1",
-                 numericInput('aa1', 'a', 1 )),
-conditionalPanel("input.initial_values == 2",
-                 fillRow(numericInput('aa2', 'a', 1),
-                         numericInput('bb2', 'b', 1))),
-conditionalPanel("input.initial_values == 3",
-                 fillRow(numericInput('aa3', 'a', 1),
-                         numericInput('bb3', 'b', 1),
-                         numericInput('cc3', 'c', 1))),
-conditionalPanel("input.initial_values == 4",
-                 fillRow(
-                   numericInput('aa4', 'a', 1),
-                   numericInput('bb4', 'b', 1),
-                   numericInput('cc4', 'c', 1),
-                   numericInput('dd4', 'd', 1))
+                 sliderInput("initial_values", label="initial values", min=1, max=5, value=1, step=1),
+                 conditionalPanel("input.initial_values == 1",
+                                  numericInput('aa1', 'a', 1 )),
+                 conditionalPanel("input.initial_values == 2",
+                                  fillRow(numericInput('aa2', 'a', 1),
+                                          numericInput('bb2', 'b', 1))),
+                 conditionalPanel("input.initial_values == 3",
+                                  fillRow(numericInput('aa3', 'a', 1),
+                                          numericInput('bb3', 'b', 1),
+                                          numericInput('cc3', 'c', 1))),
+                 conditionalPanel("input.initial_values == 4",
+                                  fillRow(
+                                    numericInput('aa4', 'a', 1),
+                                    numericInput('bb4', 'b', 1),
+                                    numericInput('cc4', 'c', 1),
+                                    numericInput('dd4', 'd', 1))
                  ),
-                 
-conditionalPanel("input.initial_values == 5",
-                 fillRow(
-                   numericInput('aa5', 'a', 1),
-                   numericInput('bb5', 'b', 1),
-                   numericInput('cc5', 'c', 1),
-                   numericInput('dd5', 'd', 1),
-                   numericInput('ee5', 'e', 1))
+                 conditionalPanel("input.initial_values == 5",
+                                  fillRow(
+                                    numericInput('aa5', 'a', 1),
+                                    numericInput('bb5', 'b', 1),
+                                    numericInput('cc5', 'c', 1),
+                                    numericInput('dd5', 'd', 1),
+                                    numericInput('ee5', 'e', 1))
                  ),
-actionButton("go_sol","(Re)start Numeric Simulation Solow", style="background-color: #ec7063 ; border-radius: 10px !important; border: none; position:absolute; bottom: 5px; margin: auto;"
+                 actionButton("go_sol","(Re)start Numeric Simulation Solow", style="background-color: #ec7063 ;
+                              border-radius: 10px !important; border: none; position:absolute; bottom: 5px;
+                              margin: auto;"
 ))
-
  ######################################################
 #Conditional panel for initial values for Goodwin model#
  #####################################################
+#y0 <- matrix(c(0.2, 1, 0.6, 1, 1.1, 1), ncol = 2, nrow = 3, byrow = TRUE)
 conditionalPanel("input.model == 'Goodwin'",
                  fluidPage(
                    fluidRow(
@@ -233,13 +246,9 @@ conditionalPanel("input.model == 'Goodwin'",
                      actionButton("go_good",
                                   "(Re)start Numeric Simulation", 
                                   style="background-color: #ec7063 ; border-radius: 10px !important; border: none; position:absolute; bottom: 5px; margin: auto;"))))
-
-
  ######################################################
 #Conditional panel for initial values for Ramsey model#
  #####################################################
-
-
  conditionalPanel("input.model == 'Ramsey'",
                   fluidPage(
                     fluidRow(
@@ -273,9 +282,47 @@ conditionalPanel("input.model == 'Goodwin'",
                                               numericInput('rff3', 'b3', 1)))),
                     fluidRow(
                       actionButton("go_ram",
-                                   "(Re)start Numeric Simulation", 
+                                   "(Re)start Numeric Simulation for RCK model", 
                                    style="background-color: #ec7063 ; border-radius: 10px !important; border: none; position:absolute; bottom: 5px; margin: auto;"))))
 
+ ######################################################
+#Conditional panel for initial values for Shone model#
+ #####################################################
+conditionalPanel("input.model == 'Shone'",
+                 fluidPage(
+                    fluidRow(
+                      sliderInput("initial_values_s",
+                                  label="initial values",
+                                  min=1,
+                                  max=3,
+                                  value=1,
+                                  step=1)
+                      ),
+                    fluidRow(
+                      conditionalPanel("input.initial_values_s == 1",
+                                       numericInput('saa1', 'a', 0.05 ),
+                                       numericInput('sbb1', 'b', 0.15)),
+                      conditionalPanel("input.initial_values_s == 2",
+                                       column(6,
+                                              numericInput('saa2', 'a1', 0.05),
+                                              numericInput('sbb2', 'b1', 0.15)),
+                                       column(6,
+                                              numericInput('scc2', 'a2',0.1),
+                                              numericInput('sdd2', 'b2',0.2))),
+                      conditionalPanel("input.initial_values_r == 3",
+                                       column(4,
+                                              numericInput('saa3', 'a1', 0.05),
+                                              numericInput('sbb3', 'b1', 0.15)),
+                                       column(4,
+                                              numericInput('scc3', 'a2', 0.1),
+                                              numericInput('sdd3', 'b2', 0.2)),
+                                       column(4,
+                                              numericInput('see3', 'a3', 0.8),
+                                              numericInput('sff3', 'b3', 1)))),
+                    fluidRow(
+                      actionButton("go_shone",
+                                   "(Re)start Numeric Simulation for Shone model", 
+                                   style="background-color: #ec7063 ; border-radius: 10px !important; border: none; position:absolute; bottom: 5px; margin: auto;"))))
 ```
 
 
@@ -284,29 +331,40 @@ conditionalPanel("input.model == 'Goodwin'",
 
 ### Numerical Simulations
 
-
 ```{r}
-#This is one of the trickiest part of our code, we want the plot to update every time the initial values are modified AND the go button is pressed. To do so we define the initial_val function that uses the eventReactive function. This function update the initial_val every time the go button is pressed. At the same time, the renderPlot function is waiting for any update inside the curly brackets. Once the go button is pressed the plot is rendered.
 
-#Solow Model
-  initial_val <- eventReactive(input$go_sol, {
-      print(input$initial_values)
-   print(typeof(input$initial_values))
-   nval <- input$initial_values
-   print(paste("nval=",nval))
-   if(nval==1){return(c(input$aa1))} 
-   else if (nval==2){return(c(input$aa2,input$bb2))}
-   else if(nval==3){return(c(input$aa3,input$bb3,input$cc3))}
-   else if(nval==4){return(c(input$aa4,input$bb4,input$cc4,input$dd4))}
-   else {return(c(input$aa5,input$bb5,input$cc5,input$dd5,input$ee5))}})
-   
-#Goodwin Model
+ ######################################################
+#Initial Values Solow Model#
+ #####################################################
+initial_val <- eventReactive(input$go_sol, {
+  print(input$initial_values)
+  print(typeof(input$initial_values))
+  nval <- input$initial_values
+  print(paste("nval=", nval))
+  if(nval==1){return(c(input$aa1))} 
+  else if (nval==2){return(c(input$aa2,input$bb2))}
+  else if(nval==3){return(c(input$aa3,input$bb3,input$cc3))}
+  else if(nval==4){return(c(input$aa4,input$bb4,input$cc4,input$dd4))}
+  else
+    {return(c(input$aa5,input$bb5,input$cc5,input$dd5,input$ee5))}})
+
+ ######################################################
+#Initial Values Goodwin Model#
+ #####################################################
 initial_val_g <- eventReactive(input$go_good, {
   return(c(input$gaa2,input$gbb2))})
-  
-#Ramsey Model
+
+ ######################################################
+#Initial Values Ramsey Model#
+ #####################################################
 initial_val_r <- eventReactive(input$go_ram, {
   return(c(input$raa2,input$rbb2))})
+
+ ######################################################
+#Initial Values Shone Model#
+ #####################################################
+initial_val_s <- eventReactive(input$go_shone, {
+  return(c(input$saa2,input$sbb2))})
  
 conditionalPanel("input.model == 'Solow'",
                  absolutePanel(
@@ -321,7 +379,7 @@ conditionalPanel("input.model == 'Solow'",
                                      system = 'one.dim',
                                      add = F,
                                      xlab = 't',
-                                     ylab = 'dk/dt') #flowfield are generated trhough phaseR, as nullclines and trajectories.
+                                     ylab = 'dk/dt')
                    phaseR::nullclines(solow_de,
                                       xlim   = c(0.0001, input$t),
                                       ylim <- c(0.0001,input$k),
@@ -334,7 +392,6 @@ conditionalPanel("input.model == 'Solow'",
                                       parameters = c(input$s,input$a,input$d),
                                       system = "one.dim",
                                       add = T)})))
-
 
 conditionalPanel("input.model == 'Goodwin'",
                  absolutePanel(
@@ -374,7 +431,8 @@ Column {.tabset}
 ### Dynamics
 
 ```{r}
-#The following code gave annoyng issues about graphical representation. The problems were solved trough absolutePanel() and specific width and height commands.
+#renderPrint(input$model)
+#uiOutput("dynamic")
 fluidPage(
 conditionalPanel("input.model == 'Solow'",
                  absolutePanel(
@@ -395,16 +453,10 @@ conditionalPanel("input.model == 'Solow'",
 ```{r}
 y_in <- eventReactive(input$go_good, {
   if(input$initial_values_g==1){
-    return(matrix(c(input$gaa1, input$gbb1), ncol = 1, nrow = 2, byrow = TRUE))
-    }
+    return(matrix(c(input$gaa1, input$gbb1), ncol = 1, nrow = 2, byrow = TRUE))}
   else if(input$initial_values_g==2){
-      return(matrix(c(input$gaa2, input$gbb2, input$gcc2, input$gdd2), ncol = 2, nrow = 2, byrow = TRUE))
-      }
-  else{return(matrix(c(input$gaa3, input$gbb3, input$gcc3, input$gdd3, input$gee3, input$gff3), ncol = 3, nrow = 2, byrow = TRUE))
-    }
-  }
-  )
-  
+      return(matrix(c(input$gaa2, input$gbb2, input$gcc2, input$gdd2), ncol = 2, nrow = 2, byrow = TRUE))}
+  else{return(matrix(c(input$gaa3, input$gbb3, input$gcc3, input$gdd3, input$gee3, input$gff3), ncol = 3, nrow = 2, byrow = TRUE))}})
 
 y_in_r <- eventReactive(input$go_ram, {
   if(input$initial_values_r==1){
@@ -414,6 +466,17 @@ y_in_r <- eventReactive(input$go_ram, {
       return(matrix(c(input$raa2, input$rbb2, input$rcc2, input$rdd2), ncol = 2, nrow = 2, byrow = TRUE))
     }
   else{return(matrix(c(input$raa3, input$rbb3, input$rcc3, input$rdd3, input$ree3, input$rff3), ncol = 3, nrow = 2, byrow = TRUE))
+    }
+  }
+  )
+
+y_in_s <- eventReactive(input$go_shone, {
+  if(input$initial_values_s==1){
+    return(matrix(c(input$saa1,input$saa2), ncol=1, nrow = 2, byrow = TRUE))
+  }
+  else if(input$initial_values_s==2){
+      return(matrix(c(input$saa2, input$sbb2, input$scc2, input$sdd2), ncol = 2, nrow = 2, byrow = TRUE))}
+  else{return(matrix(c(input$saa3, input$sbb3, input$scc3, input$sdd3, input$see3, input$sff3), ncol = 3, nrow = 2, byrow = TRUE))
     }
   }
   )
@@ -437,7 +500,7 @@ conditionalPanel("input.model == 'Goodwin'",
                    y0 <- y_in()
                    phaseR::flowField(goodwin,
                                       xlim = c(0,0.6), 
-                                      ylim = c(0, 1.3), 
+                                      ylim = c(0,1.3), 
                                       parameters = c(input$sigmag, input$alphag, input$betag, input$gammag, input$rhog),
                                       points = 30, 
                                       add = FALSE,
@@ -445,7 +508,7 @@ conditionalPanel("input.model == 'Goodwin'",
                                       ylab = "b")
                    phaseR::nullclines(goodwin,
                                       xlim = c(-1,3), 
-                                      ylim = c(-1, 3),
+                                      ylim = c(-1,3),
                                       parameters = c(input$sigmag, input$alphag, input$betag, input$gammag, input$rhog), 
                                       points = 500)
                    phaseR::trajectory(goodwin, 
@@ -453,7 +516,7 @@ conditionalPanel("input.model == 'Goodwin'",
                                       tlim = c(0,input$tg),
                                       parameters = c(input$sigmag, input$alphag, input$betag, input$gammag, input$rhog), 
                                       colour = rep("black", 3))})))
-                                      
+
 conditionalPanel("input.model == 'Ramsey'",
                  absolutePanel(
                    width="100%", height = "100%",
@@ -487,6 +550,48 @@ conditionalPanel("input.model == 'Ramsey'",
                    
                    
                  ))
+
+conditionalPanel("input.model == 'Shone'",
+                 absolutePanel(
+                   width = "100%", height = "100%",
+                     renderPlot({
+                       print(y_in_s())
+                       y0 <- y_in_s()
+                       print(input)
+                       shone.flowField <- phaseR::flowField(
+                         shone,
+                         xlim = c(0,2),
+                         ylim = c(-0.5,0.5),
+                         parameters = c(input$c0s, input$i0s, input$Gs,input$bs, input$ks, input$ds, input$hs ,input$taus,
+                                        input$alphas, input$betas, input$mdots, input$yns),
+                         add = F,
+                         points = 20
+                         )
+                       
+                       shone.nullclines <- phaseR::nullclines(
+                         shone,
+                         xlim = c(0,2),ylim = c(-0.5,0.5),
+                         state.names = c('dy/dt=0','dpi/dt=0'),
+                         parameters = c(input$c0s, input$i0s, input$Gs,input$bs, input$ks, input$ds, input$hs,
+                                        input$taus, input$alphas, input$betas, input$mdots, input$yns),
+                         points = 500,
+                         col = c("blue","red"),
+                         add.legend=T
+                         )
+                       
+                       shone.trajectories <- phaseR::trajectory(
+                         shone,
+                         y0 = y0,
+                         tlim = c(0,100),
+                         parameters = c(input$c0s, input$i0s, input$Gs,input$bs, input$ks, input$ds, input$hs,
+                                        input$taus, input$alphas, input$betas, input$mdots, input$yns),
+                         col = rep('black',3)
+                         )
+                       
+                       })
+                     )
+                   )
+                 
 ```
 
 
